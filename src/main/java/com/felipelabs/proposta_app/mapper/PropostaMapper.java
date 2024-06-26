@@ -1,12 +1,15 @@
 package com.felipelabs.proposta_app.mapper;
 
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
 import com.felipelabs.proposta_app.dto.PropostaRequestDTO;
 import com.felipelabs.proposta_app.dto.PropostaResponseDTO;
 import com.felipelabs.proposta_app.entity.Proposta;
+import org.hibernate.boot.model.internal.XMLContext;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
+import java.text.NumberFormat;
 import java.util.List;
 
 @Mapper
@@ -31,7 +34,13 @@ public interface PropostaMapper {
     @Mapping(target = "cpf", source = "usuario.cpf")
     @Mapping(target = "telefone", source = "usuario.telefone")
     @Mapping(target = "renda", source = "usuario.renda")
+    @Mapping(target = "valorSolicitadoFmt", expression = "java(setValorSolicitadoFmt(propostas))")
     PropostaResponseDTO convertEntitytoDto(Proposta propostas);
 
     List<PropostaResponseDTO> convertListEntityToListDto(Iterable<Proposta> propostas);
+
+    default String setValorSolicitadoFmt(Proposta propostas){
+        return NumberFormat.getCurrencyInstance().format(propostas.getValorSolicitado());
+    }
+
 }
