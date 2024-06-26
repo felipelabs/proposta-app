@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+
 @Mapper
 public interface PropostaMapper {
 
@@ -29,5 +31,7 @@ public interface PropostaMapper {
     @Mapping(target = "cpf", source = "usuario.cpf")
     @Mapping(target = "telefone", source = "usuario.telefone")
     @Mapping(target = "renda", source = "usuario.renda")
-    PropostaResponseDTO convertEntitytoDto(Proposta proposta);
+    PropostaResponseDTO convertEntitytoDto(Proposta propostas);
+
+    List<PropostaResponseDTO> convertListEntityToListDto(Iterable<Proposta> propostas);
 }
