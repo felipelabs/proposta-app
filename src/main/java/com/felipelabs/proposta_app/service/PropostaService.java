@@ -6,26 +6,44 @@ import com.felipelabs.proposta_app.entity.Proposta;
 import com.felipelabs.proposta_app.mapper.PropostaMapper;
 import com.felipelabs.proposta_app.repository.PropostaRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@AllArgsConstructor
+
 @Service
 public class PropostaService {
+
+    public String exchange;
 
     PropostaRepository propostaRepository;
 
     NotificacaoService notificacaoService;
 
+    public PropostaService(@Value("${rabbitmq.propostapendente.exchange}") String exchange,
+                           PropostaRepository propostaRepository,
+                           NotificacaoService notificacaoService) {
+
+        this.exchange = exchange;
+        this.propostaRepository = propostaRepository;
+        this.notificacaoService = notificacaoService;
+    }
+
     public PropostaResponseDTO criar(PropostaRequestDTO propostaRequestDTO){
         Proposta proposta = PropostaMapper.INSTANCE.convertDtoToProposta(propostaRequestDTO);
         propostaRepository.save(proposta);
+        notificarRabbitMQ(proposta);
+        return PropostaMapper.INSTANCE.convertEntitytoDto(proposta);
+    }
 
-        PropostaResponseDTO response = PropostaMapper.INSTANCE.convertEntitytoDto(proposta);
-        notificacaoService.notificar(response, "proposta-pendente.ex");
-
-        return response;
+    private void notificarRabbitMQ(Proposta proposta){
+        try {
+            notificacaoService.notificar(proposta, exchange);
+        }catch (RuntimeException ex){
+            proposta.setIntegrada(false);
+            propostaRepository.save(proposta);
+        }
     }
 
     public List<PropostaResponseDTO> obterProposta() {
